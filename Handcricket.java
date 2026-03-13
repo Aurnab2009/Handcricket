@@ -2,16 +2,26 @@ import java.util.Scanner;
 class Handcricket{
     int computer_score,user_score;//Stores the score of computer and the user rescpectively
     int overs,wickets;//Stores the wickets and the overs
+    int reader_input[];//Stores how much of ecah number the user has input
     static Scanner sc=new Scanner(System.in);
     private Handcricket(int main_overs,int main_wickets) {
         computer_score=0;
         user_score=0;
         overs=main_overs;
         wickets=main_wickets;
+        reader_input=new int[7];
     }
 
     private int random_generator_six(){//Random number generator from 1 to 6
         return (int)(Math.random()*6)+1;
+    }
+
+    private int user_pattern_reader(){//Reads the users pattern
+        int max_input=0;//The number which the user has input the most times
+        for(int loop_c=1;loop_c<=6;loop_c++)
+            if(reader_input[loop_c]>max_input)
+                max_input=loop_c;
+        return max_input;
     }
 
     private int toss_manager(String choose){//A dedicated toss manager to simulate toss
@@ -30,16 +40,22 @@ class Handcricket{
         return 0;//Lose will return 0
     }
 
-    private double over_simulater_manager(int checker,double pre_wickets){//Function for simulating over.The use of checeker is to make sure who is balling or batting
-        double scorer_over=0.001+pre_wickets/100.0;//Wickets are kept in file(.00).the last 1 is added so that the .00 does not convert into .0
-        for(int loop_control=1;loop_control<=6;loop_control++){//Simulating a over
+    private double over_simulator_manager(int checker,int pre_wickets){//Function for simulating over.The use of checeker is to make sure who is balling or batting
+        double scorer_over=0.001;//Wickets are kept in file(.00).the last 1 is added so that the .00 does not convert into .0
+        for(int ball=1;ball<=6;ball++){//Simulating a over
             int user_input=sc.nextInt();//User input
-            int computer_output=random_generator_six();//Computer randomized output
+            int computer_output;
             if(user_input<1||user_input>6){//Makes sure the user input is correct or else asks again
-                System.out.println("Wrong Input");
-                loop_control--;
+                System.out.println("Wrong Input.Wide run initiated");
+                computer_score++;//One extra run to computer for wrong input
+                ball--;
                 continue;
             }
+            reader_input[user_input]++;//Sends the data for the computer to recognize
+            if(checker==1)//When user batting computer recognizes pattren
+                computer_output=Math.random()<0.5?random_generator_six():user_pattern_reader();//Computer randomized output
+            else//When user balling computer is completely random
+                computer_output=random_generator_six();
             System.out.println("Computer : "+computer_output);//Prints Computer Output
             if(user_input==computer_output){
                 scorer_over+=0.01;//Wickets counter
@@ -51,7 +67,7 @@ class Handcricket{
                 else//0 means user balling
                     scorer_over+=computer_output;
             String score=Double.toString(scorer_over);//Converts score to String
-            if(Integer.parseInt(score.substring(score.indexOf('.')+1,score.indexOf('.')+3))==wickets)//Checks if all wickets are fallen
+            if(Integer.parseInt(score.substring(score.indexOf('.')+1,score.indexOf('.')+3))+pre_wickets==wickets)//Checks if all wickets are fallen
                 return scorer_over;
         }
         return scorer_over;
@@ -60,7 +76,7 @@ class Handcricket{
         System.out.println("User now batting");
         int counter_over=0,counter_wicket=0;//Counting overs and wickets
         while(counter_over<overs&&counter_wicket<wickets){
-            double runs_hub=over_simulater_manager(1,(double)(counter_wicket));//Gets the score for each over
+            double runs_hub=over_simulator_manager(1,counter_wicket);//Gets the score for each over
             user_score+=(int)(runs_hub);//Adds it to the user code
             String storer=String.valueOf(runs_hub);
             counter_wicket+=Integer.parseInt(storer.substring(storer.indexOf('.')+1,storer.indexOf('.')+3));//Adds the wicket
@@ -73,7 +89,7 @@ class Handcricket{
         System.out.println("User now balling");
         int counter_over=0,counter_wicket=0;//Counting overs and wickets
         while(counter_over<overs&&counter_wicket<wickets){
-            double runs_hub=over_simulater_manager(1,(double)(counter_wicket));//Gets the score for each over
+            double runs_hub=over_simulator_manager(0,counter_wicket);//Gets the score for each over
             computer_score+=(int)(runs_hub);
             String storer=String.valueOf(runs_hub);
             counter_wicket+=Integer.parseInt(storer.substring(storer.indexOf('.')+1,storer.indexOf('.')+3));//Adds the wicket
@@ -88,6 +104,7 @@ class Handcricket{
         int main_wickets=sc.nextInt();
         System.out.println("Choose Head or Tail");
         String toss_choose=sc.next();
+        int bat_or_ball_storer=0;//0 for batting user first
         Handcricket object1=new Handcricket(main_overs,main_wickets);
         if(object1.toss_manager(toss_choose)==1){
             System.out.println("You win");
@@ -95,10 +112,12 @@ class Handcricket{
             System.out.println("Choose to bat or to ball");
             String bat_ball_choose=sc.next();
             if(bat_ball_choose.equalsIgnoreCase("Bat")){//Toss decider user
+                bat_or_ball_storer=0;
                 object1.bat();
                 object1.ball();
             }
             else if(bat_ball_choose.equalsIgnoreCase("Ball")){
+                bat_or_ball_storer=1;
                 object1.ball();
                 object1.bat();
             }
@@ -112,11 +131,13 @@ class Handcricket{
             System.out.println("Scores are displayed after each over");
             if(((int)(Math.random()*2)+1)%2==0){
                 System.out.println("Computer will ball first");
+                bat_or_ball_storer=0;
                 object1.bat();
                 object1.ball();
             }
             else{
                 System.out.println("Computer will bat first");
+                bat_or_ball_storer=1;
                 object1.ball();
                 object1.bat();
             }
@@ -132,8 +153,12 @@ class Handcricket{
                 object1.wickets=2;
                 object1.user_score=0;
                 object1.computer_score=0;
-                object1.bat();
+                if(bat_or_ball_storer%2==1)//User will bat first if he bowled
+                    object1.bat();
                 object1.ball();
+                if(bat_or_ball_storer%2==0)//User will bat last if he bat
+                    object1.bat();
+                bat_or_ball_storer++;
             }
         }           
     }
