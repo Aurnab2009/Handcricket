@@ -3,10 +3,14 @@ class Handcricket{
     int computer_score,user_score;//Stores the score of computer and the user rescpectively
     int overs,wickets;//Stores the wickets and the overs
     int reader_input[];//Stores how much of ecah number the user has input
+    double difficulty;//Strores the difficulty of the game
+    int second_innings_checker;//Checks if it is second innings or not.Multplies of 2 means second innings
     static Scanner sc=new Scanner(System.in);
     private Handcricket(int main_overs,int main_wickets) {
         computer_score=0;
         user_score=0;
+        difficulty=0.0;
+        second_innings_checker=1;
         overs=main_overs;
         wickets=main_wickets;
         reader_input=new int[7];
@@ -53,7 +57,7 @@ class Handcricket{
             }
             reader_input[user_input]++;//Sends the data for the computer to recognize
             if(checker==1)//When user batting computer recognizes pattren
-                computer_output=Math.random()<0.5?random_generator_six():user_pattern_reader();//Computer randomized output
+                computer_output=Math.random()<difficulty?random_generator_six():user_pattern_reader();//Computer randomized output
             else//When user balling computer is completely random
                 computer_output=random_generator_six();
             System.out.println("Computer : "+computer_output);//Prints Computer Output
@@ -67,7 +71,18 @@ class Handcricket{
                 else//0 means user balling
                     scorer_over+=computer_output;
             String score=Double.toString(scorer_over);//Converts score to String
-            if(Integer.parseInt(score.substring(score.indexOf('.')+1,score.indexOf('.')+3))+pre_wickets==wickets)//Checks if all wickets are fallen
+            int total_wickets=Integer.parseInt(score.substring(score.indexOf('.')+1,score.indexOf('.')+3))+pre_wickets;//Stores the total number of wickets in the over and pre_wickets
+            if(second_innings_checker%2==0&&checker==1&&(int)(scorer_over)+user_score>computer_score){//Chceks if the run scored by the user is greater than the computer in the second innings
+                System.out.println("Your score : "+(user_score+(int)(scorer_over))+"\nComputer Score : "+computer_score);
+                System.out.println("You win by "+(wickets-total_wickets)+" wickets");
+                System.exit(0);
+            }
+            if(second_innings_checker%2==0&&checker==0&&user_score<(int)(scorer_over)+computer_score){//Chceks if the run scored by the computer is greater than the user in the second innings
+                System.out.println("Your score : "+user_score+"\nComputer Score : "+computer_score+(int)(scorer_over));
+                System.out.println("You lose by "+(wickets-total_wickets)+" wickets");
+                System.exit(0);
+            }
+            if(total_wickets==wickets)//Checks if all wickets are fallen
                 return scorer_over;
         }
         return scorer_over;
@@ -99,6 +114,8 @@ class Handcricket{
     }
 
     public static void main(String[] args) {
+        System.out.println("Enter difficulty in which you want to play \"Easy\" \"Normal\" \"Hard\" :");
+        String difficulty_words=sc.next();
         System.out.println("Enter the number of overs and the number of wickets");
         int main_overs=sc.nextInt();
         int main_wickets=sc.nextInt();
@@ -106,6 +123,16 @@ class Handcricket{
         String toss_choose=sc.next();
         int bat_or_ball_storer=0;//0 for batting user first
         Handcricket object1=new Handcricket(main_overs,main_wickets);
+        if(difficulty_words.equalsIgnoreCase("Easy"))//Difficulty sorter
+            object1.difficulty=0.9;//Easy 0.9
+        else if(difficulty_words.equalsIgnoreCase("Normal"))
+            object1.difficulty=0.7;//Normal 0.7
+        else if(difficulty_words.equalsIgnoreCase("Hard"))
+            object1.difficulty=0.5;//Hard 0.5
+        else{
+            System.out.println("Invalid Input at difficulty");
+            System.exit(0);
+        }
         if(object1.toss_manager(toss_choose)==1){
             System.out.println("You win");
             System.out.println("Scores are displayed after each over");
@@ -114,12 +141,16 @@ class Handcricket{
             if(bat_ball_choose.equalsIgnoreCase("Bat")){//Toss decider user
                 bat_or_ball_storer=0;
                 object1.bat();
+                object1.second_innings_checker++;//Checks if the function is run
                 object1.ball();
+                object1.second_innings_checker++;//Checks if the function is run
             }
             else if(bat_ball_choose.equalsIgnoreCase("Ball")){
                 bat_or_ball_storer=1;
                 object1.ball();
+                object1.second_innings_checker++;//Checks if the function is run
                 object1.bat();
+                object1.second_innings_checker++;//Checks if the function is run
             }
             else{
                 System.out.println("Wrong Input");
@@ -133,19 +164,23 @@ class Handcricket{
                 System.out.println("Computer will ball first");
                 bat_or_ball_storer=0;
                 object1.bat();
+                object1.second_innings_checker++;//Checks if the function is run
                 object1.ball();
+                object1.second_innings_checker++;//Checks if the function is run
             }
             else{
                 System.out.println("Computer will bat first");
                 bat_or_ball_storer=1;
                 object1.ball();
+                 object1.second_innings_checker++;//Checks if the function is run
                 object1.bat();
+                object1.second_innings_checker++;//Checks if the function is run
             }
         }
         if(object1.user_score>object1.computer_score)
-            System.out.println("You win");
+            System.out.println("You win by "+(object1.user_score-object1.computer_score)+" runs");
         else if(object1.user_score<object1.computer_score)
-            System.out.println("You lose");
+            System.out.println("You lose by "+(object1.computer_score-object1.user_score)+" runs");
         else{
             while(object1.user_score==object1.computer_score){//Super over
                 System.out.println("Match tied.Superover initiated.");
@@ -153,11 +188,16 @@ class Handcricket{
                 object1.wickets=2;
                 object1.user_score=0;
                 object1.computer_score=0;
-                if(bat_or_ball_storer%2==1)//User will bat first if he bowled
+                if(bat_or_ball_storer%2==1){//User will bat first if he bowled
                     object1.bat();
+                    object1.second_innings_checker++;//Checks if the function is run
+                }
                 object1.ball();
-                if(bat_or_ball_storer%2==0)//User will bat last if he bat
+                object1.second_innings_checker++;//Checks if the function is run
+                if(bat_or_ball_storer%2==0){//User will bat last if he bat
                     object1.bat();
+                object1.second_innings_checker++;//Checks if the function is run
+                }
                 bat_or_ball_storer++;
             }
         }           
