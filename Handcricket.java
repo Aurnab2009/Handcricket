@@ -77,8 +77,8 @@ class Handcricket{
                 System.out.println("You win by "+(wickets-total_wickets)+" wickets");
                 System.exit(0);
             }
-            if(second_innings_checker%2==0&&checker==0&&user_score<(int)(scorer_over)+computer_score){//Chceks if the run scored by the computer is greater than the user in the second innings
-                System.out.println("Your score : "+user_score+"\nComputer Score : "+computer_score+(int)(scorer_over));
+            if(second_innings_checker%2==0&&checker==0&&user_score<computer_score+(int)(scorer_over)){//Chceks if the run scored by the computer is greater than the user in the second innings
+                System.out.println("Your score : "+user_score+"\nComputer Score : "+(computer_score+(int)(scorer_over)));
                 System.out.println("You lose by "+(wickets-total_wickets)+" wickets");
                 System.exit(0);
             }
